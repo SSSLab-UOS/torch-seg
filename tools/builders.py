@@ -93,6 +93,8 @@ def build_data_loader(cfg, dataset, sampler):
     
     return torch.utils.data.DataLoader(dataset, **cfg, sampler=sampler)
 
+    
+
 def build_loss(cfg):
     """Build loss from config 
     Args:
@@ -180,7 +182,7 @@ def build_loaders(cfg, rank, num_replicas=0):
         # build dataset 
         dataset = build_dataset(_cfg['dataset'], transform=transform)
 
-        if num_replicas > 0 :
+        if num_replicas > 1 :
             if split == 'train': 
                 sampler = torch.utils.data.distributed.DistributedSampler(
                     dataset, num_replicas=num_replicas, rank=rank

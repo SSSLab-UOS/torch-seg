@@ -7,6 +7,8 @@ import numpy as np
 
 from tools.library import PipelineRegistry
 
+from copy import deepcopy
+
 """
 References: 
 
@@ -161,7 +163,9 @@ class RandomRescale(object):
         """
         output_size = random.randint(self.output_range[0], self.output_range[1])
         rescale = Rescale(output_size)
-        return rescale(sample)
+        sample = rescale(sample)
+
+        return sample 
 
 
 @PipelineRegistry.register('Pad')
@@ -346,14 +350,15 @@ class RandomCrop(object):
             left = np.random.randint(0, w_margin)
 
             crop = Crop(top, left, new_h, new_w)
-            sample = crop(sample)
+            _sample = deepcopy(sample)
+            _sample = crop(_sample)
 
             # check sample has a key 'segmap'
 
 
             if 'segmap' in sample.keys(): 
 
-                uniques, cnt = np.unique(sample['segmap'], return_counts=True)
+                uniques, cnt = np.unique(_sample['segmap'], return_counts=True)
                 cnt = cnt[uniques != self.ignore_idx]
 
                 if len(cnt) > 1 and np.max(cnt) / np.sum(cnt) < self.cat_max_ratio:
@@ -361,7 +366,7 @@ class RandomCrop(object):
             else: 
                 break
 
-        return sample
+        return _sample
 
 
 @PipelineRegistry.register('RandomFlipLR')

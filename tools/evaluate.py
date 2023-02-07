@@ -60,8 +60,8 @@ def evaluate(
             pred = pred.flatten().detach().cpu().numpy()
             gt = labels.flatten().detach().cpu().numpy()
 
-            preds += list(pred)
-            gts += list(gt)
+            preds.append(pred)
+            gts.append(gt)
     
         if metric=='miou':
             cm = calculate_cm(preds, gts, num_classes, ignore_idx)
@@ -123,7 +123,7 @@ def calculate_miou(cm, logger=None, classes=None):
     for i in range(num_classes): 
         intersection = cm[i, i]
         union = cm[i, :].sum() + cm[:, i].sum() - intersection
-        ious.append(intersection / union)
+        ious.append(intersection / (union+(1 ** -16)))
     
     miou = np.mean(ious)
 

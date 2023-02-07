@@ -61,8 +61,6 @@ class SupervisedLearner(object):
         img_key = self.img_key
         label_key = self.label_key
 
-
-    
         if self.run_by == 'epoch':
 
             iteration = self.epochs * len(data_loaders['train'])
@@ -107,6 +105,7 @@ class SupervisedLearner(object):
             pred = model(inputs)
 
             if is_main: 
+
                 # print(f'iteration {i} rank {rank} You are here 7')
 
                 if i % logger.interval == logger.interval-1:
@@ -114,6 +113,9 @@ class SupervisedLearner(object):
                     pred = torch.argmax(pred, dim=1)
                     num_correct = torch.sum(pred == labels)
                     train_acc = num_correct / len(pred)
+                    
+                    if label_key == 'segmap':    
+                        train_acc /= (labels.shape[0] * labels.shape[1] * labels.shape[2])
 
                     epoch = i // len(data_loaders['train']) + 1
 
@@ -123,8 +125,14 @@ class SupervisedLearner(object):
 
                 if i % eval_cfg['interval'] == eval_cfg['interval']-1:
                     # print(f'iteration {i} rank {rank} You are here 8')
+                    
+                    if is_dist == True: 
+                        eval_model = model.module
+                    else:
+                        eval_model = model
+
                     evaluate(
-                        model.module, 
+                        eval_model, 
                         data_loaders['val'], 
                         device, 
                         logger=logger,
@@ -160,99 +168,13 @@ class SupervisedLearner(object):
 
                     stopper.early_stopping(loss.item(), model, path) 
 
-<<<<<<< HEAD
-            # print(f'rank {rank} You are here 11')
-=======
-
-
-        logger.info('Finished Training')
-
-
-
-# @RunnerRegistry.register('SupervisedLearner')
-# class SupervisedLearner(object):
-#     def __init__(
-#         self, 
-#         run_by='epoch',
-#         patience=None,
-#         min_delta=0
-#         ):
-        
-#         self.run_by = run_by
-#         self.patience = patience
-#         self.min_delta = min_delta
-#         self.counter = 0
-#         self.best_loss = None
-#         self.early_stop = False
-#         self.val_loss_min = 100000
-    
-#     def train(
-#         self, 
-#         cfg,
-#         model, 
-#         device, 
-#         logger, 
-#         optimizer, 
-#         data_loaders,
-#         scheduler,
-#         is_dist = None
-#         ):
-
-#         """
-#         Args: 
-#             runner_pack (dict): 
-#                 includes configuration, model, data_loaders, 
-#                          device, logger
-#         """
-
-#         logger_interval = cfg['LOGGER']['interval']
-#         eval_interval = cfg['EVALUATION']['interval']
-#         checkpoint_interval = cfg['CHECKPOINT']['interval']
-
-#         best_save_path = osp.join(cfg['WORK_DIR'], "best_checkpoint.pt")
-#         graph_path = osp.join(cfg['WORK_DIR'], "runs")
-    
-
-#         if self.run_by == 'epoch':
-#             iteration = cfg['EPOCH'] * len(data_loaders['train'])
-#             print('iteration: ', iteration)
-#         elif self.run_by == 'iteration':
-#             iteration = cfg['ITERATION']
-#         else:
-#             print('supported run by option: epoch, iteration')
-       
-
-#         train_running_loss = 0.0
-#         val_running_loss = 0.0
-        
-#         train_generator = iter(data_loaders['train'])
-#         val_generator = iter(data_loaders['val'])
-
-
-#         for i in range(iteration): # loop over the dataset multiple times
-            
-#             optimizer.zero_grad()
-            
-#             try:
-#                 train_data = next(train_generator)
-
-#             except StopIteration: 
-
-#                 train_generator = iter(data_loaders['train'])
-#                 train_data = next(train_generator)
->>>>>>> 18d2bde51025aa3659d76706d15a01ca2a39e2e7
-            
-
             torch.distributed.barrier()
-            # print(f'rank {rank} You are here 12')
 
             i += 1
-
-
-
-
-<<<<<<< HEAD
+        
         logger.info('Finished Training')
-=======
 
->>>>>>> 18d2bde51025aa3659d76706d15a01ca2a39e2e7
+
+
+
+ 

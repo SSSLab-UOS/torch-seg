@@ -87,7 +87,9 @@ def train(rank):
     pretrained_dict = None
 
     if cfg['LOAD_FROM'] :
-        pretrained_dict = torch.load(cfg['LOAD_FROM'])
+        load_path = cfg['LOAD_FROM']
+        pretrained_dict = torch.load(load_path )
+        logger.info(f'Load from {load_path}.')
 
     elif cfg['RESUME_FROM']:
         pretrained_dict = torch.load(cfg['RESUME_FROM'])
